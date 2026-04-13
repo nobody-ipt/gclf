@@ -1,7 +1,7 @@
 -- ============================================================
--- BLOX FRUITS HYPERDRIVE v9.1 - NEO EDITION
--- Real Game Logic | CommF_ Remotes | Quest NPC Loop
--- Aerial Farming | Mob Gathering | Neo Light Blue Theme
+-- BLOX FRUITS HYPERDRIVE v9.2 - NEO EDITION
+-- Real Game Logic | CommF_ Remotes | Kill Aura
+-- Quest Auto-Accept | Mob Farm | Neo Light Blue Theme
 -- ============================================================
 
 -- ==================== SERVICES ====================
@@ -34,79 +34,79 @@ pcall(function()
 end)
 
 -- ==================== QUEST TABLE (REAL BLOX FRUITS) ====================
--- Format: { MinLevel, QuestId, QuestIndex, MobName, NpcPosition }
+-- Format: { MinLevel, QuestId, QuestIndex, MobDisplayName, NpcPosition }
+-- MobDisplayName = exact mob name as it appears in Workspace.Enemies (e.g. "Bandit [Lv. 5]")
 -- QuestId and QuestIndex are used with CommF_:InvokeServer("StartQuest", QuestId, QuestIndex)
 
 local QuestTable = {
     -- === SEA 1 ===
-    {1,    "BanditQuest1",      1, "Bandit",               CFrame.new(1060, 16, 1547)},
-    {5,    "BanditQuest1",      1, "Bandit",               CFrame.new(1060, 16, 1547)},
-    {10,   "JungleQuest",       1, "Monkey",               CFrame.new(-1604, 37, 154)},
-    {15,   "JungleQuest",       2, "Gorilla",              CFrame.new(-1604, 37, 154)},
-    {30,   "BuggyQuest1",       1, "Pirate",               CFrame.new(-1139, 5, 3830)},
-    {40,   "BuggyQuest1",       2, "Brute",                CFrame.new(-1139, 5, 3830)},
-    {60,   "DesertQuest",       1, "Desert Bandit",        CFrame.new(899, 6, 4389)},
-    {70,   "DesertQuest",       2, "Desert Officer",       CFrame.new(899, 6, 4389)},
-    {90,   "SnowQuest",         1, "Snow Bandit",          CFrame.new(1347, 88, -1298)},
-    {100,  "SnowQuest",         2, "Snowman",              CFrame.new(1347, 88, -1298)},
-    {120,  "MarineQuest2",      1, "Chief Petty Officer",  CFrame.new(-4846, 20, 4324)},
-    {150,  "SkyQuest",          1, "Sky Bandit",           CFrame.new(-4846, 844, 4324)},
-    {175,  "SkyQuest",          2, "Dark Master",          CFrame.new(-4846, 844, 4324)},
-    {225,  "ColosseumQuest",    1, "Toga Warrior",         CFrame.new(-1573, 7, -2891)},
-    {275,  "ColosseumQuest",    2, "Gladiator",            CFrame.new(-1573, 7, -2891)},
-    {300,  "MagmaQuest",        1, "Military Soldier",     CFrame.new(-5312, 12, 8515)},
-    {330,  "MagmaQuest",        2, "Military Spy",         CFrame.new(-5312, 12, 8515)},
-    {375,  "FishmanQuest",      1, "Fishman Warrior",      CFrame.new(61126, 17, 1568)},
-    {400,  "FishmanQuest",      2, "Fishman Commando",     CFrame.new(61126, 17, 1568)},
-    {450,  "SkyExp1Quest",      1, "God's Guard",          CFrame.new(-4846, 844, 4324)},
-    {475,  "SkyExp1Quest",      2, "Shanda",               CFrame.new(-4846, 844, 4324)},
-    {525,  "SkyExp2Quest",      1, "Royal Squad",          CFrame.new(-7894, 5549, -380)},
-    {550,  "SkyExp2Quest",      2, "Royal Soldier",        CFrame.new(-7894, 5549, -380)},
-    {625,  "FountainQuest",     1, "Galley Pirate",        CFrame.new(5255, 24, 4058)},
-    {675,  "FountainQuest",     2, "Galley Captain",       CFrame.new(5255, 24, 4058)},
+    {1,    "BanditQuest1",      1, "Bandit [Lv. 5]",                CFrame.new(1060, 16, 1547)},
+    {10,   "JungleQuest",       1, "Monkey [Lv. 14]",              CFrame.new(-1604, 37, 154)},
+    {15,   "JungleQuest",       2, "Gorilla [Lv. 20]",             CFrame.new(-1604, 37, 154)},
+    {30,   "BuggyQuest1",       1, "Pirate [Lv. 35]",              CFrame.new(-1139, 5, 3830)},
+    {40,   "BuggyQuest1",       2, "Brute [Lv. 45]",               CFrame.new(-1139, 5, 3830)},
+    {60,   "DesertQuest",       1, "Desert Bandit [Lv. 60]",       CFrame.new(899, 6, 4389)},
+    {70,   "DesertQuest",       2, "Desert Officer [Lv. 70]",      CFrame.new(899, 6, 4389)},
+    {90,   "SnowQuest",         1, "Snow Bandit [Lv. 90]",         CFrame.new(1347, 88, -1298)},
+    {100,  "SnowQuest",         2, "Snowman [Lv. 100]",            CFrame.new(1347, 88, -1298)},
+    {120,  "MarineQuest2",      1, "Chief Petty Officer [Lv. 120]",CFrame.new(-4846, 20, 4324)},
+    {150,  "SkyQuest",          1, "Sky Bandit [Lv. 150]",         CFrame.new(-4846, 844, 4324)},
+    {175,  "SkyQuest",          2, "Dark Master [Lv. 175]",        CFrame.new(-4846, 844, 4324)},
+    {225,  "ColosseumQuest",    1, "Toga Warrior [Lv. 225]",       CFrame.new(-1573, 7, -2891)},
+    {275,  "ColosseumQuest",    2, "Gladiator [Lv. 275]",          CFrame.new(-1573, 7, -2891)},
+    {300,  "MagmaQuest",        1, "Military Soldier [Lv. 300]",   CFrame.new(-5312, 12, 8515)},
+    {330,  "MagmaQuest",        2, "Military Spy [Lv. 330]",       CFrame.new(-5312, 12, 8515)},
+    {375,  "FishmanQuest",      1, "Fishman Warrior [Lv. 375]",    CFrame.new(61126, 17, 1568)},
+    {400,  "FishmanQuest",      2, "Fishman Commando [Lv. 400]",   CFrame.new(61126, 17, 1568)},
+    {450,  "SkyExp1Quest",      1, "God's Guard [Lv. 450]",        CFrame.new(-4846, 844, 4324)},
+    {475,  "SkyExp1Quest",      2, "Shanda [Lv. 475]",             CFrame.new(-4846, 844, 4324)},
+    {525,  "SkyExp2Quest",      1, "Royal Squad [Lv. 525]",        CFrame.new(-7894, 5549, -380)},
+    {550,  "SkyExp2Quest",      2, "Royal Soldier [Lv. 550]",      CFrame.new(-7894, 5549, -380)},
+    {625,  "FountainQuest",     1, "Galley Pirate [Lv. 625]",      CFrame.new(5255, 24, 4058)},
+    {675,  "FountainQuest",     2, "Galley Captain [Lv. 675]",     CFrame.new(5255, 24, 4058)},
 
     -- === SEA 2 ===
-    {700,  "AreaQuest2",        1, "Raider",               CFrame.new(-429, 73, 1836)},
-    {725,  "AreaQuest2",        2, "Mercenary",            CFrame.new(-429, 73, 1836)},
-    {775,  "DressrosaQuest",    1, "Swan Pirate",          CFrame.new(986, 120, 1349)},
-    {800,  "DressrosaQuest",    2, "Factory Staff",        CFrame.new(986, 120, 1349)},
-    {850,  "GreenZoneQuest",    1, "Marine Commodore",     CFrame.new(-2142, 73, -3162)},
-    {900,  "GreenZoneQuest",    2, "Marine Rear Admiral",  CFrame.new(-2142, 73, -3162)},
-    {950,  "IceSideQuest",      1, "Snow Trooper",         CFrame.new(5669, 32, -6485)},
-    {1000, "IceSideQuest",      2, "Winter Warrior",       CFrame.new(5669, 32, -6485)},
-    {1050, "ForgottenQuest",    1, "Lab Subordinate",      CFrame.new(-3038, 295, -3791)},
-    {1100, "ForgottenQuest",    2, "Horned Warrior",       CFrame.new(-3038, 295, -3791)},
-    {1125, "FireSideQuest",     1, "Magma Ninja",          CFrame.new(-5439, 17, 8264)},
-    {1175, "FireSideQuest",     2, "Lava Pirate",          CFrame.new(-5439, 17, 8264)},
-    {1200, "ShipQuest2",        1, "Ship Officer",         CFrame.new(1038, 26, 32907)},
-    {1250, "ShipQuest2",        2, "Ship Engineer",        CFrame.new(1038, 26, 32907)},
+    {700,  "AreaQuest2",        1, "Raider [Lv. 700]",             CFrame.new(-429, 73, 1836)},
+    {725,  "AreaQuest2",        2, "Mercenary [Lv. 725]",          CFrame.new(-429, 73, 1836)},
+    {775,  "DressrosaQuest",    1, "Swan Pirate [Lv. 775]",        CFrame.new(986, 120, 1349)},
+    {800,  "DressrosaQuest",    2, "Factory Staff [Lv. 800]",      CFrame.new(986, 120, 1349)},
+    {850,  "GreenZoneQuest",    1, "Marine Commodore [Lv. 850]",   CFrame.new(-2142, 73, -3162)},
+    {900,  "GreenZoneQuest",    2, "Marine Rear Admiral [Lv. 900]",CFrame.new(-2142, 73, -3162)},
+    {950,  "IceSideQuest",      1, "Snow Trooper [Lv. 950]",       CFrame.new(5669, 32, -6485)},
+    {1000, "IceSideQuest",      2, "Winter Warrior [Lv. 1000]",    CFrame.new(5669, 32, -6485)},
+    {1050, "ForgottenQuest",    1, "Lab Subordinate [Lv. 1050]",   CFrame.new(-3038, 295, -3791)},
+    {1100, "ForgottenQuest",    2, "Horned Warrior [Lv. 1100]",    CFrame.new(-3038, 295, -3791)},
+    {1125, "FireSideQuest",     1, "Magma Ninja [Lv. 1125]",       CFrame.new(-5439, 17, 8264)},
+    {1175, "FireSideQuest",     2, "Lava Pirate [Lv. 1175]",       CFrame.new(-5439, 17, 8264)},
+    {1200, "ShipQuest2",        1, "Ship Officer [Lv. 1200]",      CFrame.new(1038, 26, 32907)},
+    {1250, "ShipQuest2",        2, "Ship Engineer [Lv. 1250]",     CFrame.new(1038, 26, 32907)},
 
     -- === SEA 3 ===
-    {1325, "PortTownQuest",     1, "Marine Lieutenant",    CFrame.new(-290, 45, 5474)},
-    {1350, "PortTownQuest",     2, "Marine Captain",       CFrame.new(-290, 45, 5474)},
-    {1375, "HauntedQuest",      1, "Zombie",               CFrame.new(-5429, 49, -784)},
-    {1400, "HauntedQuest",      2, "Vampire",              CFrame.new(-5429, 49, -784)},
-    {1425, "MansionQuest",      1, "Reborn Skeleton",      CFrame.new(-5087, 114, -4828)},
-    {1450, "MansionQuest",      2, "Living Zombie",        CFrame.new(-5087, 114, -4828)},
-    {1475, "TikiQuest",         1, "Demonic Soul",         CFrame.new(2842, 437, -6993)},
-    {1500, "TikiQuest",         2, "Posessed Mummy",       CFrame.new(2842, 437, -6993)},
-    {1525, "VolcanoQuest",      1, "Lava Pirate",          CFrame.new(-5348, 293, -5077)},
-    {1550, "VolcanoQuest",      2, "Magma Ninja",          CFrame.new(-5348, 293, -5077)},
-    {1575, "CastleQuest",       1, "Pirate Millionaire",   CFrame.new(-5234, 100, -2835)},
-    {1600, "CastleQuest",       2, "Dragon Crew Warrior",  CFrame.new(-5234, 100, -2835)},
-    {1625, "CastleQuest",       2, "Dragon Crew Archer",   CFrame.new(-5234, 100, -2835)},
-    {1650, "GraveyardQuest",    1, "Reborn Skeleton",      CFrame.new(-5107, 49, -5084)},
-    {1700, "GraveyardQuest",    2, "Undead Pirate",        CFrame.new(-5107, 49, -5084)},
-    {1750, "CursedQuest",       1, "Cursed Skeleton Captain", CFrame.new(-3038, 295, -3791)},
-    {1800, "ForgottenQuest2",   1, "Forgotten Pirate",     CFrame.new(-3038, 295, -3791)},
-    {1850, "LeafQuest",         1, "Forest Pirate",        CFrame.new(-2842, 437, -6993)},
-    {1900, "LeafQuest",         2, "Mythological Pirate",  CFrame.new(-2842, 437, -6993)},
-    {1950, "IceCreamQuest",     1, "Cake Guard",           CFrame.new(-817, 50, -10971)},
-    {2000, "IceCreamQuest",     2, "Baking Staff",         CFrame.new(-817, 50, -10971)},
-    {2050, "CakeQuest",         1, "Cookie Crafter",       CFrame.new(-817, 50, -10971)},
-    {2100, "CakeQuest",         2, "Cake Guard",           CFrame.new(-817, 50, -10971)},
-    {2200, "ChocolateQuest",    1, "Cocoa Warrior",        CFrame.new(-817, 50, -10971)},
-    {2300, "ChocolateQuest",    2, "Chocolate Bar Battler", CFrame.new(-817, 50, -10971)},
+    {1325, "PortTownQuest",     1, "Marine Lieutenant [Lv. 1325]", CFrame.new(-290, 45, 5474)},
+    {1350, "PortTownQuest",     2, "Marine Captain [Lv. 1350]",    CFrame.new(-290, 45, 5474)},
+    {1375, "HauntedQuest",      1, "Zombie [Lv. 1375]",            CFrame.new(-5429, 49, -784)},
+    {1400, "HauntedQuest",      2, "Vampire [Lv. 1400]",           CFrame.new(-5429, 49, -784)},
+    {1425, "MansionQuest",      1, "Reborn Skeleton [Lv. 1425]",   CFrame.new(-5087, 114, -4828)},
+    {1450, "MansionQuest",      2, "Living Zombie [Lv. 1450]",     CFrame.new(-5087, 114, -4828)},
+    {1475, "TikiQuest",         1, "Demonic Soul [Lv. 1475]",      CFrame.new(2842, 437, -6993)},
+    {1500, "TikiQuest",         2, "Posessed Mummy [Lv. 1500]",    CFrame.new(2842, 437, -6993)},
+    {1525, "VolcanoQuest",      1, "Lava Pirate [Lv. 1525]",       CFrame.new(-5348, 293, -5077)},
+    {1550, "VolcanoQuest",      2, "Magma Ninja [Lv. 1550]",       CFrame.new(-5348, 293, -5077)},
+    {1575, "CastleQuest",       1, "Pirate Millionaire [Lv. 1575]",CFrame.new(-5234, 100, -2835)},
+    {1600, "CastleQuest",       2, "Dragon Crew Warrior [Lv. 1600]",CFrame.new(-5234, 100, -2835)},
+    {1625, "CastleQuest",       2, "Dragon Crew Archer [Lv. 1625]",CFrame.new(-5234, 100, -2835)},
+    {1650, "GraveyardQuest",    1, "Reborn Skeleton [Lv. 1650]",   CFrame.new(-5107, 49, -5084)},
+    {1700, "GraveyardQuest",    2, "Undead Pirate [Lv. 1700]",     CFrame.new(-5107, 49, -5084)},
+    {1750, "CursedQuest",       1, "Cursed Skeleton Captain [Lv. 1750]", CFrame.new(-3038, 295, -3791)},
+    {1800, "ForgottenQuest2",   1, "Forgotten Pirate [Lv. 1800]",  CFrame.new(-3038, 295, -3791)},
+    {1850, "LeafQuest",         1, "Forest Pirate [Lv. 1850]",     CFrame.new(-2842, 437, -6993)},
+    {1900, "LeafQuest",         2, "Mythological Pirate [Lv. 1900]",CFrame.new(-2842, 437, -6993)},
+    {1950, "IceCreamQuest",     1, "Cake Guard [Lv. 1950]",        CFrame.new(-817, 50, -10971)},
+    {2000, "IceCreamQuest",     2, "Baking Staff [Lv. 2000]",      CFrame.new(-817, 50, -10971)},
+    {2050, "CakeQuest",         1, "Cookie Crafter [Lv. 2050]",    CFrame.new(-817, 50, -10971)},
+    {2100, "CakeQuest",         2, "Cake Guard [Lv. 2100]",        CFrame.new(-817, 50, -10971)},
+    {2200, "ChocolateQuest",    1, "Cocoa Warrior [Lv. 2200]",     CFrame.new(-817, 50, -10971)},
+    {2300, "ChocolateQuest",    2, "Chocolate Bar Battler [Lv. 2300]", CFrame.new(-817, 50, -10971)},
 }
 
 -- ==================== CONFIG ====================
@@ -117,6 +117,9 @@ local Config = {
     FarmDistance = 250, BringRange = 230, TweenSpeed = 300,
     BringMobs = false, AutoHaki = false, AutoAttack = true,
     AutoShoot = false, AttackMobs = true,
+    KillAura = false, KillAuraRange = 60, -- Kill Aura: damage all mobs in range
+    AttackSpeedMult = 1, -- 1=normal, 2=double speed, 3=triple
+    MultiHit = 1, -- Clicks per attack cycle (1-5)
     AutoSecondSea = false, KillGreybeard = false,
     AutoGetSaber = false, AutoGetSwordPole = false, AutoGetSwordSaw = false,
     AutoGetWardens = false, AutoGetTrident = false,
@@ -150,7 +153,7 @@ local State = {
 local function Notify(text)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
-            Title = "HYPERDRIVE v9.1", Text = text, Duration = 3
+            Title = "HYPERDRIVE v9.2", Text = text, Duration = 3
         })
     end)
 end
@@ -238,6 +241,8 @@ local function GetPlayerLevel()
 end
 
 -- ==================== QUEST SYSTEM (REAL BLOX FRUITS) ====================
+-- Based on xHeptc/BloxFruits reference — quest acceptance is JUST CommF_:InvokeServer
+-- No NPC GUI interaction needed. The remote handles everything server-side.
 
 -- Get the best quest for current level
 local function GetQuestForLevel()
@@ -254,6 +259,7 @@ local function GetQuestForLevel()
 end
 
 -- Start a quest using the real CommF_ remote
+-- This is the ONLY thing needed to accept a quest — no NPC interaction required
 local function StartQuest(questId, questIndex)
     if not CommF_ then
         pcall(function()
@@ -261,80 +267,74 @@ local function StartQuest(questId, questIndex)
         end)
     end
     if not CommF_ then return false end
-    local ok, result = pcall(function()
-        return CommF_:InvokeServer("StartQuest", questId, questIndex)
+    local ok = pcall(function()
+        CommF_:InvokeServer("StartQuest", questId, questIndex)
     end)
     return ok
 end
 
--- Check if player has an active quest
-local function HasActiveQuest()
-    local has = false
-    pcall(function()
-        -- Check via PlayerGui quest tracker
-        local pg = LP:FindFirstChild("PlayerGui")
-        if pg then
-            local main = pg:FindFirstChild("Main")
-            if main then
-                local quest = main:FindFirstChild("Quest")
-                if quest and quest.Visible then has = true end
-            end
-        end
-    end)
-    -- Fallback: scan for any visible quest frame
-    if not has then
+-- Find a mob by its display name in BOTH Workspace.Enemies AND ReplicatedStorage
+-- Returns the model if found alive, nil otherwise
+local function FindMobByName(mobName)
+    local found = nil
+
+    -- Check Workspace.Enemies first (spawned mobs)
+    if Enemies then
         pcall(function()
-            for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
-                if child.Name == "QuestFrame" or child.Name == "Quest" or child.Name == "QuestGui" then
-                    if child:IsA("Frame") and child.Visible then
-                        has = true; break
+            for _, mob in ipairs(Enemies:GetChildren()) do
+                if mob:IsA("Model") and mob.Name == mobName then
+                    if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                        found = mob
+                        return
                     end
                 end
             end
         end)
     end
-    return has
-end
+    if found then return found end
 
--- Get quest progress text
-local function GetQuestProgress()
-    local progress = nil
+    -- Check ReplicatedStorage (quest NPC templates that are also attackable)
     pcall(function()
-        for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
-            if child:IsA("TextLabel") then
-                local txt = child.Text or ""
-                -- Look for patterns like "Defeat 5 Bandit" or "3/5"
-                if txt:match("Defeat%s+%d+") or txt:match("%d+/%d+") then
-                    progress = txt
-                    break
+        for _, mob in ipairs(ReplicatedStorage:GetChildren()) do
+            if mob:IsA("Model") and mob.Name ~= "BusoTemplate" and mob.Name == mobName then
+                if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                    found = mob
+                    return
                 end
             end
         end
     end)
-    return progress
+
+    return found
 end
 
--- Check if quest is complete
-local function IsQuestComplete()
-    local done = false
+-- Find ALL alive mobs matching a name (for kill aura)
+local function FindAllMobsByName(mobName)
+    local mobs = {}
+
+    if Enemies then
+        pcall(function()
+            for _, mob in ipairs(Enemies:GetChildren()) do
+                if mob:IsA("Model") and mob.Name == mobName then
+                    if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                        table.insert(mobs, mob)
+                    end
+                end
+            end
+        end)
+    end
+
     pcall(function()
-        local progress = GetQuestProgress()
-        if progress then
-            -- Check for "0 remaining" pattern
-            if progress:match("0%s*remaining") then done = true end
-            -- Check for matching numbers like "5/5"
-            local current, total = progress:match("(%d+)/(%d+)")
-            if current and total and tonumber(current) >= tonumber(total) then done = true end
-        end
-        -- Also check for "Complete" text
-        for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
-            if child:IsA("TextLabel") then
-                local t = (child.Text or ""):lower()
-                if t:find("complete") or t:find("finished") then done = true; break end
+        for _, mob in ipairs(ReplicatedStorage:GetChildren()) do
+            if mob:IsA("Model") and mob.Name ~= "BusoTemplate" and mob.Name == mobName then
+                if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                    table.insert(mobs, mob)
+                end
             end
         end
     end)
-    return done
+
+    return mobs
 end
 
 -- ==================== FLY ====================
@@ -409,15 +409,18 @@ local function NoclipLoop()
 end
 
 -- ==================== COMBAT (REAL BLOX FRUITS) ====================
+-- Based on xHeptc reference: VirtualUser:CaptureController() + ClickButton1 is the attack
+-- Skills: VirtualInputManager:SendKeyEvent for C, tool.RemoteFunction for Z/X
+
 local function EquipWeapon()
     pcall(function()
         local char = GetCharacter()
         if not char then return end
-        -- Check if weapon already equipped
         if char:FindFirstChildOfClass("Tool") then return end
-        -- Equip from backpack
         local backpack = LP:FindFirstChild("Backpack")
         if not backpack then return end
+
+        -- Try to match selected tool type
         for _, tool in ipairs(backpack:GetChildren()) do
             if tool:IsA("Tool") then
                 local name = tool.Name:lower()
@@ -433,56 +436,108 @@ local function EquipWeapon()
                 end
             end
         end
-        -- If no matching type found, equip first available tool
+        -- Fallback: equip first tool that isn't "Fruit"
         for _, tool in ipairs(backpack:GetChildren()) do
-            if tool:IsA("Tool") then
+            if tool:IsA("Tool") and tool.Name ~= "Fruit" then
                 char.Humanoid:EquipTool(tool); return
             end
         end
     end)
 end
 
+-- Core attack function — uses the SAME method as xHeptc reference script
 local function Attack(target)
-    if not target or not IsAlive() then return end
+    if not IsAlive() then return end
 
     EquipWeapon()
 
-    -- Method 1: Use VirtualUser to click (simulates left click attack)
-    pcall(function()
-        VirtualUser:CaptureController()
-        VirtualUser:ClickButton1(Vector2.new())
-    end)
+    -- Multi-hit: repeat clicks based on Config.MultiHit (1-5)
+    local hits = math.clamp(Config.MultiHit, 1, 5)
+    for i = 1, hits do
+        -- Primary: VirtualUser click (this is what actually deals damage in Blox Fruits)
+        pcall(function()
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton1(Vector2.new())
+        end)
+    end
 
-    -- Method 2: Activate the equipped tool
+    -- Fire skills on the equipped tool
     pcall(function()
         local char = GetCharacter()
-        if char then
-            local tool = char:FindFirstChildOfClass("Tool")
-            if tool then
-                tool:Activate()
-                -- Fire skills if enabled
-                if tool:FindFirstChild("RemoteFunction") then
-                    if Config.SkillZ then
-                        pcall(function()
-                            local pos = CFrame.new(GetRoot().CFrame.p, target.HumanoidRootPart.Position)
-                            tool.RemoteFunction:InvokeServer("Z", pos)
+        if not char then return end
+        for _, v in ipairs(char:GetChildren()) do
+            if v:IsA("Tool") and v.Name ~= "Fruit" then
+                -- Skill Z: use tool RemoteFunction
+                if Config.SkillZ and v:FindFirstChild("RemoteFunction") then
+                    pcall(function()
+                        local root = GetRoot()
+                        if root and target and target:FindFirstChild("HumanoidRootPart") then
+                            local pos = CFrame.new(root.CFrame.p, target.HumanoidRootPart.Position)
+                            v.RemoteFunction:InvokeServer("Z", pos)
+                        end
+                    end)
+                end
+                -- Skill X: use tool RemoteFunction
+                if Config.SkillX and v:FindFirstChild("RemoteFunction") then
+                    pcall(function()
+                        v.RemoteFunction:InvokeServer("X")
+                    end)
+                end
+                -- Skill C: use VirtualInputManager key event (like xHeptc)
+                if Config.SkillC then
+                    pcall(function()
+                        local vim = game:GetService("VirtualInputManager")
+                        vim:SendKeyEvent(true, "C", false, game)
+                        task.defer(function()
+                            vim:SendKeyEvent(false, "C", false, game)
                         end)
-                    end
-                    if Config.SkillX then
-                        pcall(function() tool.RemoteFunction:InvokeServer("X") end)
-                    end
-                    if Config.SkillC then
-                        pcall(function() tool.RemoteFunction:InvokeServer("C") end)
-                    end
+                    end)
                 end
             end
         end
     end)
+end
 
-    -- Method 3: Try combat remote
+-- Kill Aura: attack ALL mobs within range (not just nearest)
+local function KillAuraAttack()
+    if not IsAlive() then return end
+    local root = GetRoot()
+    if not root then return end
+
+    local range = Config.KillAuraRange
+
+    -- Attack all mobs in Workspace.Enemies within range
+    if Enemies then
+        pcall(function()
+            for _, mob in ipairs(Enemies:GetChildren()) do
+                if mob:IsA("Model") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                    local dist = (root.Position - mob.HumanoidRootPart.Position).Magnitude
+                    if dist <= range then
+                        -- TP to mob, attack, TP back (super fast)
+                        pcall(function()
+                            root.CFrame = mob.HumanoidRootPart.CFrame
+                            VirtualUser:CaptureController()
+                            VirtualUser:ClickButton1(Vector2.new())
+                        end)
+                    end
+                end
+            end
+        end)
+    end
+
+    -- Also check ReplicatedStorage mobs
     pcall(function()
-        if CommF_ then
-            CommF_:InvokeServer("Combat")
+        for _, mob in ipairs(ReplicatedStorage:GetChildren()) do
+            if mob:IsA("Model") and mob.Name ~= "BusoTemplate" and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                local dist = (root.Position - mob.HumanoidRootPart.Position).Magnitude
+                if dist <= range then
+                    pcall(function()
+                        root.CFrame = mob.HumanoidRootPart.CFrame
+                        VirtualUser:CaptureController()
+                        VirtualUser:ClickButton1(Vector2.new())
+                    end)
+                end
+            end
         end
     end)
 end
@@ -548,15 +603,21 @@ local function GatherMobs(center, duration)
 end
 
 -- ==================== AUTO FARM LEVEL (REAL QUEST LOOP) ====================
+-- This matches the EXACT pattern from xHeptc/BloxFruits reference:
+-- 1. Call CommF_:InvokeServer("StartQuest") EVERY loop iteration (auto-accepts/re-accepts)
+-- 2. Find mob by EXACT display name (e.g. "Bandit [Lv. 5]")
+-- 3. TP directly to mob CFrame (not above — melee needs contact)
+-- 4. Attack with VirtualUser:ClickButton1
+-- 5. Tight repeat...until per mob (kill it before moving to next)
+
 local function AutoFarmLevelLoop()
-    -- Enable fly and noclip for aerial farming
-    if not State.Flying then Config.Fly = true; StartFly() end
+    -- Enable noclip so we don't get stuck on terrain
     if not Config.Noclip then Config.Noclip = true; task.spawn(NoclipLoop) end
 
     while Config.AutoFarmLevel do
-        if not IsAlive() then task.wait(2); continue end
+        if not IsAlive() then task.wait(1); continue end
 
-        -- Step 1: Get quest for current level
+        -- Get quest for current level
         local questInfo = GetQuestForLevel()
         if not questInfo then
             Notify("No quest for your level!")
@@ -565,110 +626,99 @@ local function AutoFarmLevelLoop()
 
         local minLv, questId, questIdx, mobName, npcPos = questInfo[1], questInfo[2], questInfo[3], questInfo[4], questInfo[5]
 
-        -- Step 2: Accept quest if not active
-        if not HasActiveQuest() then
-            Notify("Getting quest: " .. mobName)
+        -- ALWAYS call StartQuest every loop — this is how xHeptc does it
+        -- If quest is already active, calling again has no bad effect
+        -- If quest is not active (completed or never started), this accepts it
+        StartQuest(questId, questIdx)
 
-            -- Teleport to quest NPC
-            TeleportTo(npcPos)
-            task.wait(1)
-
-            -- Accept quest via CommF_ remote
-            local accepted = StartQuest(questId, questIdx)
-            if accepted then
-                Notify("Quest accepted: " .. mobName)
-            else
-                Notify("Failed to accept quest, retrying...")
-            end
-            task.wait(1)
+        -- Kill Aura mode: attack all mobs in range
+        if Config.KillAura then
+            KillAuraAttack()
+            task.wait(0.05)
+            -- Continue to also do targeted farming below
         end
 
-        -- Step 3: Farm the quest mobs aerially
-        local farmStart = tick()
-        while Config.AutoFarmLevel and not IsQuestComplete() do
-            if not IsAlive() then task.wait(2); continue end
-            if tick() - farmStart > 300 then
-                Notify("Quest timeout, getting new quest...")
-                break
-            end
+        -- Find the quest mob by exact display name
+        local target = FindMobByName(mobName)
 
-            -- Find quest target mob
-            local target = GetNearestMob(Config.FarmDistance, function(m)
-                return m.Name == mobName or m.Name:find(mobName)
-            end)
+        if target and target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+            -- Tight attack loop: stay on this mob until it dies
+            repeat
+                if not Config.AutoFarmLevel then break end
+                if not IsAlive() then task.wait(1); break end
 
-            -- If no matching mob, try any nearby mob
-            if not target then
-                target = GetNearestMob(Config.FarmDistance)
-            end
+                pcall(function()
+                    -- TP directly to mob CFrame (melee contact)
+                    GetRoot().CFrame = target.HumanoidRootPart.CFrame
+                end)
 
-            if target and target:FindFirstChild("HumanoidRootPart") then
-                local mobPos = target.HumanoidRootPart.Position
-
-                -- Position above mob for aerial farming (avoid melee damage)
-                TeleportTo(CFrame.new(mobPos.X, mobPos.Y + Config.FlyHeight, mobPos.Z))
+                -- Attack
                 Attack(target)
 
-                -- Mob gathering: if enough mobs nearby, fly in circles to group them
-                if Config.BringMobs then
-                    local nearby = GetMobsInRange(Config.BringRange)
-                    if #nearby >= 3 then
-                        GatherMobs(mobPos, 2)
-                        -- Burst attack gathered mobs
-                        for i = 1, 6 do
-                            local t2 = GetNearestMob(Config.BringRange)
-                            if t2 and t2:FindFirstChild("HumanoidRootPart") then
-                                TeleportTo(CFrame.new(t2.HumanoidRootPart.Position.X, t2.HumanoidRootPart.Position.Y + Config.FlyHeight, t2.HumanoidRootPart.Position.Z))
-                                Attack(t2)
-                            end
-                            task.wait(0.1)
-                        end
-                    end
-                end
-            else
-                -- No mob found, teleport near NPC area
-                TeleportTo(npcPos * CFrame.new(0, Config.FlyHeight, 0))
-                task.wait(1)
-            end
-            task.wait(0.08)
+                task.wait(0)
+            until not Config.AutoFarmLevel or not target or not target.Parent or not target:FindFirstChild("Humanoid") or target.Humanoid.Health <= 0
+        else
+            -- No mob found — teleport near quest area and wait for respawn
+            pcall(function()
+                GetRoot().CFrame = npcPos
+            end)
+            task.wait(0.5)
         end
 
-        -- Step 4: Quest complete - loop back to step 1
-        if IsQuestComplete() then
-            Notify("Quest done! " .. mobName)
-        end
-        task.wait(0.5)
+        task.wait(0)
     end
 
-    Config.Fly = false; StopFly(); Config.Noclip = false
+    Config.Noclip = false
 end
 
 -- ==================== AUTO FARM NEAREST ====================
+-- Same tight loop pattern — TP to nearest mob, attack until dead, find next
 local function AutoFarmNearestLoop()
-    if not State.Flying then Config.Fly = true; StartFly() end
     if not Config.Noclip then Config.Noclip = true; task.spawn(NoclipLoop) end
+
     while Config.AutoFarmNearest do
         if not IsAlive() then task.wait(1); continue end
-        local target = GetNearestMob(Config.FarmDistance)
-        if target and target:FindFirstChild("HumanoidRootPart") then
-            local mobPos = target.HumanoidRootPart.Position
-            TeleportTo(CFrame.new(mobPos.X, mobPos.Y + Config.FlyHeight, mobPos.Z))
-            Attack(target)
-            if Config.BringMobs then
-                local nearby = GetMobsInRange(Config.BringRange)
-                if #nearby >= 3 then
-                    GatherMobs(mobPos, 2)
-                    for i = 1, 6 do
-                        local t2 = GetNearestMob(Config.BringRange)
-                        if t2 then Attack(t2) end
-                        task.wait(0.1)
-                    end
-                end
-            end
+
+        -- Kill Aura mode
+        if Config.KillAura then
+            KillAuraAttack()
+            task.wait(0.05)
         end
-        task.wait(0.08)
+
+        -- Find nearest mob in Workspace.Enemies
+        local target = GetNearestMob(Config.FarmDistance)
+
+        if target and target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 then
+            repeat
+                if not Config.AutoFarmNearest then break end
+                if not IsAlive() then task.wait(1); break end
+
+                pcall(function()
+                    GetRoot().CFrame = target.HumanoidRootPart.CFrame
+                end)
+
+                Attack(target)
+
+                task.wait(0)
+            until not Config.AutoFarmNearest or not target or not target.Parent or not target:FindFirstChild("Humanoid") or target.Humanoid.Health <= 0
+        else
+            task.wait(0.5)
+        end
+
+        task.wait(0)
     end
-    Config.Fly = false; StopFly(); Config.Noclip = false
+
+    Config.Noclip = false
+end
+
+-- ==================== KILL AURA LOOP (STANDALONE) ====================
+local function KillAuraLoop()
+    while Config.KillAura do
+        if IsAlive() then
+            KillAuraAttack()
+        end
+        task.wait(0.1)
+    end
 end
 
 -- ==================== AUTO STATS (REAL CommF_) ====================
@@ -1099,7 +1149,7 @@ local titleLbl = Instance.new("TextLabel")
 titleLbl.Size = UDim2.new(0, 200, 1, 0)
 titleLbl.Position = UDim2.new(0, 34, 0, 0)
 titleLbl.BackgroundTransparency = 1
-titleLbl.Text = "HYPERDRIVE v9.1 : Blox Fruits"
+titleLbl.Text = "HYPERDRIVE v9.2 : Blox Fruits"
 titleLbl.TextColor3 = C.White
 titleLbl.TextSize = 10
 titleLbl.Font = Enum.Font.GothamBold
@@ -1757,22 +1807,29 @@ end
 local farmTab = MakeTab("Farm")
 AddDropdown(farmTab, "Select Tool", "Weapon to use", {"Sword", "Melee", "Blox Fruit", "Gun"}, "SelectTool", 1)
 AddSection(farmTab, "Main Farm", 2)
-AddToggle(farmTab, "Auto Farm Level", "CommF_ quest loop + aerial", "AutoFarmLevel", 3, function(v)
+AddToggle(farmTab, "Auto Farm Level", "Quest loop: auto-accept + farm mobs", "AutoFarmLevel", 3, function(v)
     if v then task.spawn(AutoFarmLevelLoop) end
 end)
 AddToggle(farmTab, "Auto Farm Nearest", "Farm nearest mobs", "AutoFarmNearest", 4, function(v)
     if v then task.spawn(AutoFarmNearestLoop) end
 end)
-AddSection(farmTab, "Event", 5)
-AddToggle(farmTab, "Auto Fishing", nil, "AutoFishing", 6, function(v)
+AddSection(farmTab, "Kill Aura / Damage", 5)
+AddToggle(farmTab, "Kill Aura", "Hit ALL mobs in range", "KillAura", 6, function(v)
+    if v then task.spawn(KillAuraLoop) end
+end)
+AddSlider(farmTab, "Aura Range", "KillAuraRange", 10, 200, 7)
+AddSlider(farmTab, "Multi-Hit", "MultiHit", 1, 5, 8)
+AddSlider(farmTab, "Atk Speed", "AttackSpeedMult", 1, 3, 9)
+AddSection(farmTab, "Event", 10)
+AddToggle(farmTab, "Auto Fishing", nil, "AutoFishing", 11, function(v)
     if v then task.spawn(AutoFishingLoop) end
 end)
-AddToggle(farmTab, "Auto Collect Eggs", nil, "AutoCollectEggs", 7, nil)
-AddSection(farmTab, "Chest", 8)
-AddToggle(farmTab, "Auto Chest [Tween]", nil, "AutoChestTween", 9, function(v)
+AddToggle(farmTab, "Auto Collect Eggs", nil, "AutoCollectEggs", 12, nil)
+AddSection(farmTab, "Chest", 13)
+AddToggle(farmTab, "Auto Chest [Tween]", nil, "AutoChestTween", 14, function(v)
     if v then task.spawn(AutoChestLoop) end
 end)
-AddToggle(farmTab, "Auto Chest [Bypass]", nil, "AutoChestBypass", 10, function(v)
+AddToggle(farmTab, "Auto Chest [Bypass]", nil, "AutoChestBypass", 15, function(v)
     if v then task.spawn(AutoChestLoop) end
 end)
 
@@ -1968,6 +2025,6 @@ end)
 
 -- ==================== INIT ====================
 SelectTab("Farm")
-Notify("HYPERDRIVE v9.1 Loaded!")
-Notify("Real CommF_ quest logic active")
+Notify("HYPERDRIVE v9.2 Loaded!")
+Notify("Kill Aura + Quest Auto-Accept active")
 Notify("Press RightShift to toggle UI")
