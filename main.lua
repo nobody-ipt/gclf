@@ -1,7 +1,7 @@
 -- ============================================================
--- BLOX FRUITS HYPERDRIVE v9.0 - NEO EDITION
--- Compact UI | Quest NPC Loop | Aerial Farming
--- All Features Working | Bug-Free | Neo Light Blue Theme
+-- BLOX FRUITS HYPERDRIVE v9.1 - NEO EDITION
+-- Real Game Logic | CommF_ Remotes | Quest NPC Loop
+-- Aerial Farming | Mob Gathering | Neo Light Blue Theme
 -- ============================================================
 
 -- ==================== SERVICES ====================
@@ -12,11 +12,102 @@ local RunService        = game:GetService("RunService")
 local StarterGui        = game:GetService("StarterGui")
 local UserInputService  = game:GetService("UserInputService")
 local TweenService      = game:GetService("TweenService")
+local VirtualUser       = game:GetService("VirtualUser")
 
 local LP     = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
+
+-- Wait for game to load
+if not game:IsLoaded() then game.Loaded:Wait() end
+repeat task.wait() until LP and LP.Character
+
+-- Cache game references
 local Enemies = nil
-pcall(function() Enemies = Workspace:WaitForChild("Enemies", 5) end)
+pcall(function() Enemies = Workspace:WaitForChild("Enemies", 10) end)
+
+local Remotes = nil
+pcall(function() Remotes = ReplicatedStorage:WaitForChild("Remotes", 10) end)
+
+local CommF_ = nil
+pcall(function()
+    if Remotes then CommF_ = Remotes:FindFirstChild("CommF_") end
+end)
+
+-- ==================== QUEST TABLE (REAL BLOX FRUITS) ====================
+-- Format: { MinLevel, QuestId, QuestIndex, MobName, NpcPosition }
+-- QuestId and QuestIndex are used with CommF_:InvokeServer("StartQuest", QuestId, QuestIndex)
+
+local QuestTable = {
+    -- === SEA 1 ===
+    {1,    "BanditQuest1",      1, "Bandit",               CFrame.new(1060, 16, 1547)},
+    {5,    "BanditQuest1",      1, "Bandit",               CFrame.new(1060, 16, 1547)},
+    {10,   "JungleQuest",       1, "Monkey",               CFrame.new(-1604, 37, 154)},
+    {15,   "JungleQuest",       2, "Gorilla",              CFrame.new(-1604, 37, 154)},
+    {30,   "BuggyQuest1",       1, "Pirate",               CFrame.new(-1139, 5, 3830)},
+    {40,   "BuggyQuest1",       2, "Brute",                CFrame.new(-1139, 5, 3830)},
+    {60,   "DesertQuest",       1, "Desert Bandit",        CFrame.new(899, 6, 4389)},
+    {70,   "DesertQuest",       2, "Desert Officer",       CFrame.new(899, 6, 4389)},
+    {90,   "SnowQuest",         1, "Snow Bandit",          CFrame.new(1347, 88, -1298)},
+    {100,  "SnowQuest",         2, "Snowman",              CFrame.new(1347, 88, -1298)},
+    {120,  "MarineQuest2",      1, "Chief Petty Officer",  CFrame.new(-4846, 20, 4324)},
+    {150,  "SkyQuest",          1, "Sky Bandit",           CFrame.new(-4846, 844, 4324)},
+    {175,  "SkyQuest",          2, "Dark Master",          CFrame.new(-4846, 844, 4324)},
+    {225,  "ColosseumQuest",    1, "Toga Warrior",         CFrame.new(-1573, 7, -2891)},
+    {275,  "ColosseumQuest",    2, "Gladiator",            CFrame.new(-1573, 7, -2891)},
+    {300,  "MagmaQuest",        1, "Military Soldier",     CFrame.new(-5312, 12, 8515)},
+    {330,  "MagmaQuest",        2, "Military Spy",         CFrame.new(-5312, 12, 8515)},
+    {375,  "FishmanQuest",      1, "Fishman Warrior",      CFrame.new(61126, 17, 1568)},
+    {400,  "FishmanQuest",      2, "Fishman Commando",     CFrame.new(61126, 17, 1568)},
+    {450,  "SkyExp1Quest",      1, "God's Guard",          CFrame.new(-4846, 844, 4324)},
+    {475,  "SkyExp1Quest",      2, "Shanda",               CFrame.new(-4846, 844, 4324)},
+    {525,  "SkyExp2Quest",      1, "Royal Squad",          CFrame.new(-7894, 5549, -380)},
+    {550,  "SkyExp2Quest",      2, "Royal Soldier",        CFrame.new(-7894, 5549, -380)},
+    {625,  "FountainQuest",     1, "Galley Pirate",        CFrame.new(5255, 24, 4058)},
+    {675,  "FountainQuest",     2, "Galley Captain",       CFrame.new(5255, 24, 4058)},
+
+    -- === SEA 2 ===
+    {700,  "AreaQuest2",        1, "Raider",               CFrame.new(-429, 73, 1836)},
+    {725,  "AreaQuest2",        2, "Mercenary",            CFrame.new(-429, 73, 1836)},
+    {775,  "DressrosaQuest",    1, "Swan Pirate",          CFrame.new(986, 120, 1349)},
+    {800,  "DressrosaQuest",    2, "Factory Staff",        CFrame.new(986, 120, 1349)},
+    {850,  "GreenZoneQuest",    1, "Marine Commodore",     CFrame.new(-2142, 73, -3162)},
+    {900,  "GreenZoneQuest",    2, "Marine Rear Admiral",  CFrame.new(-2142, 73, -3162)},
+    {950,  "IceSideQuest",      1, "Snow Trooper",         CFrame.new(5669, 32, -6485)},
+    {1000, "IceSideQuest",      2, "Winter Warrior",       CFrame.new(5669, 32, -6485)},
+    {1050, "ForgottenQuest",    1, "Lab Subordinate",      CFrame.new(-3038, 295, -3791)},
+    {1100, "ForgottenQuest",    2, "Horned Warrior",       CFrame.new(-3038, 295, -3791)},
+    {1125, "FireSideQuest",     1, "Magma Ninja",          CFrame.new(-5439, 17, 8264)},
+    {1175, "FireSideQuest",     2, "Lava Pirate",          CFrame.new(-5439, 17, 8264)},
+    {1200, "ShipQuest2",        1, "Ship Officer",         CFrame.new(1038, 26, 32907)},
+    {1250, "ShipQuest2",        2, "Ship Engineer",        CFrame.new(1038, 26, 32907)},
+
+    -- === SEA 3 ===
+    {1325, "PortTownQuest",     1, "Marine Lieutenant",    CFrame.new(-290, 45, 5474)},
+    {1350, "PortTownQuest",     2, "Marine Captain",       CFrame.new(-290, 45, 5474)},
+    {1375, "HauntedQuest",      1, "Zombie",               CFrame.new(-5429, 49, -784)},
+    {1400, "HauntedQuest",      2, "Vampire",              CFrame.new(-5429, 49, -784)},
+    {1425, "MansionQuest",      1, "Reborn Skeleton",      CFrame.new(-5087, 114, -4828)},
+    {1450, "MansionQuest",      2, "Living Zombie",        CFrame.new(-5087, 114, -4828)},
+    {1475, "TikiQuest",         1, "Demonic Soul",         CFrame.new(2842, 437, -6993)},
+    {1500, "TikiQuest",         2, "Posessed Mummy",       CFrame.new(2842, 437, -6993)},
+    {1525, "VolcanoQuest",      1, "Lava Pirate",          CFrame.new(-5348, 293, -5077)},
+    {1550, "VolcanoQuest",      2, "Magma Ninja",          CFrame.new(-5348, 293, -5077)},
+    {1575, "CastleQuest",       1, "Pirate Millionaire",   CFrame.new(-5234, 100, -2835)},
+    {1600, "CastleQuest",       2, "Dragon Crew Warrior",  CFrame.new(-5234, 100, -2835)},
+    {1625, "CastleQuest",       2, "Dragon Crew Archer",   CFrame.new(-5234, 100, -2835)},
+    {1650, "GraveyardQuest",    1, "Reborn Skeleton",      CFrame.new(-5107, 49, -5084)},
+    {1700, "GraveyardQuest",    2, "Undead Pirate",        CFrame.new(-5107, 49, -5084)},
+    {1750, "CursedQuest",       1, "Cursed Skeleton Captain", CFrame.new(-3038, 295, -3791)},
+    {1800, "ForgottenQuest2",   1, "Forgotten Pirate",     CFrame.new(-3038, 295, -3791)},
+    {1850, "LeafQuest",         1, "Forest Pirate",        CFrame.new(-2842, 437, -6993)},
+    {1900, "LeafQuest",         2, "Mythological Pirate",  CFrame.new(-2842, 437, -6993)},
+    {1950, "IceCreamQuest",     1, "Cake Guard",           CFrame.new(-817, 50, -10971)},
+    {2000, "IceCreamQuest",     2, "Baking Staff",         CFrame.new(-817, 50, -10971)},
+    {2050, "CakeQuest",         1, "Cookie Crafter",       CFrame.new(-817, 50, -10971)},
+    {2100, "CakeQuest",         2, "Cake Guard",           CFrame.new(-817, 50, -10971)},
+    {2200, "ChocolateQuest",    1, "Cocoa Warrior",        CFrame.new(-817, 50, -10971)},
+    {2300, "ChocolateQuest",    2, "Chocolate Bar Battler", CFrame.new(-817, 50, -10971)},
+}
 
 -- ==================== CONFIG ====================
 local Config = {
@@ -46,6 +137,7 @@ local Config = {
     Fly = false, Noclip = false, FlySpeed = 80, FlyHeight = 15,
     AntiAFK = true, InfiniteJump = false, FastAttack = false,
     GodMode = false, AutoRejoin = false,
+    SkillZ = false, SkillX = false, SkillC = false,
 }
 
 local State = {
@@ -58,7 +150,7 @@ local State = {
 local function Notify(text)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
-            Title = "HYPERDRIVE v9", Text = text, Duration = 3
+            Title = "HYPERDRIVE v9.1", Text = text, Duration = 3
         })
     end)
 end
@@ -99,6 +191,150 @@ local function Tween(obj, props, dur)
     end)
     if ok and t then t:Play() return t end
     return nil
+end
+
+local function TweenMove(target, duration)
+    local root = GetRoot()
+    if not root then return end
+    local tw = TweenService:Create(root, TweenInfo.new(duration or 1, Enum.EasingStyle.Linear), {CFrame = target})
+    tw:Play()
+    tw.Completed:Wait()
+end
+
+-- ==================== PLAYER LEVEL ====================
+local function GetPlayerLevel()
+    local level = 0
+    pcall(function()
+        -- Try reading from PlayerGui stats display
+        for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
+            if child:IsA("TextLabel") then
+                local txt = child.Text or ""
+                local lv = txt:match("Lv%.%s*(%d+)") or txt:match("Level%s*(%d+)")
+                if lv then level = tonumber(lv); break end
+            end
+        end
+    end)
+    -- Fallback: try Data folder
+    if level == 0 then
+        pcall(function()
+            local data = LP:FindFirstChild("Data")
+            if data then
+                local lv = data:FindFirstChild("Level")
+                if lv then level = lv.Value end
+            end
+        end)
+    end
+    -- Fallback: try leaderstats
+    if level == 0 then
+        pcall(function()
+            local ls = LP:FindFirstChild("leaderstats")
+            if ls then
+                local lv = ls:FindFirstChild("Level") or ls:FindFirstChild("Lv")
+                if lv then level = lv.Value end
+            end
+        end)
+    end
+    return level
+end
+
+-- ==================== QUEST SYSTEM (REAL BLOX FRUITS) ====================
+
+-- Get the best quest for current level
+local function GetQuestForLevel()
+    local playerLevel = GetPlayerLevel()
+    local best = nil
+    for _, q in ipairs(QuestTable) do
+        if playerLevel >= q[1] then
+            best = q
+        else
+            break
+        end
+    end
+    return best
+end
+
+-- Start a quest using the real CommF_ remote
+local function StartQuest(questId, questIndex)
+    if not CommF_ then
+        pcall(function()
+            if Remotes then CommF_ = Remotes:FindFirstChild("CommF_") end
+        end)
+    end
+    if not CommF_ then return false end
+    local ok, result = pcall(function()
+        return CommF_:InvokeServer("StartQuest", questId, questIndex)
+    end)
+    return ok
+end
+
+-- Check if player has an active quest
+local function HasActiveQuest()
+    local has = false
+    pcall(function()
+        -- Check via PlayerGui quest tracker
+        local pg = LP:FindFirstChild("PlayerGui")
+        if pg then
+            local main = pg:FindFirstChild("Main")
+            if main then
+                local quest = main:FindFirstChild("Quest")
+                if quest and quest.Visible then has = true end
+            end
+        end
+    end)
+    -- Fallback: scan for any visible quest frame
+    if not has then
+        pcall(function()
+            for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
+                if child.Name == "QuestFrame" or child.Name == "Quest" or child.Name == "QuestGui" then
+                    if child:IsA("Frame") and child.Visible then
+                        has = true; break
+                    end
+                end
+            end
+        end)
+    end
+    return has
+end
+
+-- Get quest progress text
+local function GetQuestProgress()
+    local progress = nil
+    pcall(function()
+        for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
+            if child:IsA("TextLabel") then
+                local txt = child.Text or ""
+                -- Look for patterns like "Defeat 5 Bandit" or "3/5"
+                if txt:match("Defeat%s+%d+") or txt:match("%d+/%d+") then
+                    progress = txt
+                    break
+                end
+            end
+        end
+    end)
+    return progress
+end
+
+-- Check if quest is complete
+local function IsQuestComplete()
+    local done = false
+    pcall(function()
+        local progress = GetQuestProgress()
+        if progress then
+            -- Check for "0 remaining" pattern
+            if progress:match("0%s*remaining") then done = true end
+            -- Check for matching numbers like "5/5"
+            local current, total = progress:match("(%d+)/(%d+)")
+            if current and total and tonumber(current) >= tonumber(total) then done = true end
+        end
+        -- Also check for "Complete" text
+        for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
+            if child:IsA("TextLabel") then
+                local t = (child.Text or ""):lower()
+                if t:find("complete") or t:find("finished") then done = true; break end
+            end
+        end
+    end)
+    return done
 end
 
 -- ==================== FLY ====================
@@ -172,21 +408,81 @@ local function NoclipLoop()
     end
 end
 
--- ==================== COMBAT ====================
+-- ==================== COMBAT (REAL BLOX FRUITS) ====================
+local function EquipWeapon()
+    pcall(function()
+        local char = GetCharacter()
+        if not char then return end
+        -- Check if weapon already equipped
+        if char:FindFirstChildOfClass("Tool") then return end
+        -- Equip from backpack
+        local backpack = LP:FindFirstChild("Backpack")
+        if not backpack then return end
+        for _, tool in ipairs(backpack:GetChildren()) do
+            if tool:IsA("Tool") then
+                local name = tool.Name:lower()
+                local sel = Config.SelectTool:lower()
+                if sel == "sword" and (name:find("sword") or name:find("blade") or name:find("katana") or name:find("cutlass") or name:find("saber")) then
+                    char.Humanoid:EquipTool(tool); return
+                elseif sel == "melee" and (name:find("combat") or name:find("fist") or name:find("karate") or name:find("leg") or name:find("human") or name:find("step") or name:find("claw") or name:find("talon")) then
+                    char.Humanoid:EquipTool(tool); return
+                elseif sel == "blox fruit" and (name:find("fruit") or name:find("blox")) then
+                    char.Humanoid:EquipTool(tool); return
+                elseif sel == "gun" and (name:find("gun") or name:find("pistol") or name:find("rifle") or name:find("musket") or name:find("cannon")) then
+                    char.Humanoid:EquipTool(tool); return
+                end
+            end
+        end
+        -- If no matching type found, equip first available tool
+        for _, tool in ipairs(backpack:GetChildren()) do
+            if tool:IsA("Tool") then
+                char.Humanoid:EquipTool(tool); return
+            end
+        end
+    end)
+end
+
 local function Attack(target)
     if not target or not IsAlive() then return end
+
+    EquipWeapon()
+
+    -- Method 1: Use VirtualUser to click (simulates left click attack)
+    pcall(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton1(Vector2.new())
+    end)
+
+    -- Method 2: Activate the equipped tool
     pcall(function()
         local char = GetCharacter()
         if char then
             local tool = char:FindFirstChildOfClass("Tool")
-            if tool then tool:Activate() end
+            if tool then
+                tool:Activate()
+                -- Fire skills if enabled
+                if tool:FindFirstChild("RemoteFunction") then
+                    if Config.SkillZ then
+                        pcall(function()
+                            local pos = CFrame.new(GetRoot().CFrame.p, target.HumanoidRootPart.Position)
+                            tool.RemoteFunction:InvokeServer("Z", pos)
+                        end)
+                    end
+                    if Config.SkillX then
+                        pcall(function() tool.RemoteFunction:InvokeServer("X") end)
+                    end
+                    if Config.SkillC then
+                        pcall(function() tool.RemoteFunction:InvokeServer("C") end)
+                    end
+                end
+            end
         end
     end)
+
+    -- Method 3: Try combat remote
     pcall(function()
-        local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-        if remotes then
-            local combat = remotes:FindFirstChild("Combat")
-            if combat then combat:InvokeServer() end
+        if CommF_ then
+            CommF_:InvokeServer("Combat")
         end
     end)
 end
@@ -194,20 +490,41 @@ end
 -- ==================== TARGETING ====================
 local function GetMobsInRange(range, filterFn)
     local root = GetRoot()
-    if not root or not Enemies then return {} end
+    if not root then return {} end
     local mobs = {}
+
+    -- Search in Workspace.Enemies
+    if Enemies then
+        pcall(function()
+            for _, mob in ipairs(Enemies:GetChildren()) do
+                if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                    local d = (root.Position - mob.HumanoidRootPart.Position).Magnitude
+                    if d <= range then
+                        if not filterFn or filterFn(mob) then
+                            table.insert(mobs, {Mob = mob, Distance = d})
+                        end
+                    end
+                end
+            end
+        end)
+    end
+
+    -- Also search in ReplicatedStorage for quest mobs (some are stored there)
     pcall(function()
-        for _, mob in ipairs(Enemies:GetDescendants()) do
-            if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
-                local d = (root.Position - mob.HumanoidRootPart.Position).Magnitude
-                if d <= range then
-                    if not filterFn or filterFn(mob) then
-                        table.insert(mobs, {Mob = mob, Distance = d})
+        for _, mob in ipairs(ReplicatedStorage:GetChildren()) do
+            if mob:IsA("Model") and mob.Name ~= "BusoTemplate" then
+                if mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+                    local d = (root.Position - mob.HumanoidRootPart.Position).Magnitude
+                    if d <= range then
+                        if not filterFn or filterFn(mob) then
+                            table.insert(mobs, {Mob = mob, Distance = d})
+                        end
                     end
                 end
             end
         end
     end)
+
     table.sort(mobs, function(a, b) return a.Distance < b.Distance end)
     return mobs
 end
@@ -216,140 +533,6 @@ local function GetNearestMob(range, filterFn)
     local mobs = GetMobsInRange(range or Config.FarmDistance, filterFn)
     if #mobs > 0 then return mobs[1].Mob end
     return nil
-end
-
--- ==================== QUEST ====================
-local function FindNearestQuestNPC()
-    local closest = nil
-    local bestDist = math.huge
-    local root = GetRoot()
-    if not root then return nil end
-    pcall(function()
-        for _, obj in ipairs(Workspace:GetDescendants()) do
-            if obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") then
-                local hasInteract = false
-                for _, child in ipairs(obj:GetDescendants()) do
-                    if child:IsA("Dialog") or child:IsA("ProximityPrompt") or child:IsA("ClickDetector") then
-                        hasInteract = true
-                        break
-                    end
-                end
-                if hasInteract then
-                    local d = (root.Position - obj.HumanoidRootPart.Position).Magnitude
-                    if d < bestDist then closest = obj; bestDist = d end
-                end
-            end
-        end
-    end)
-    return closest
-end
-
-local function InteractWithQuestNPC(npc)
-    if not npc then return false end
-    local npcRoot = npc:FindFirstChild("HumanoidRootPart")
-    if not npcRoot then return false end
-    TeleportTo(npcRoot.CFrame * CFrame.new(0, 0, 3))
-    task.wait(0.5)
-    local success = false
-
-    pcall(function()
-        local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-        if remotes then
-            local qr = remotes:FindFirstChild("Quest") or remotes:FindFirstChild("AcceptQuest")
-            if qr then
-                if qr:IsA("RemoteFunction") then qr:InvokeServer(npc.Name)
-                elseif qr:IsA("RemoteEvent") then qr:FireServer(npc.Name) end
-                success = true
-            end
-        end
-    end)
-    for _, child in ipairs(npc:GetDescendants()) do
-        if child:IsA("ProximityPrompt") then
-            pcall(function() fireproximityprompt(child) end)
-            success = true
-            task.wait(0.3)
-        end
-    end
-    for _, child in ipairs(npc:GetDescendants()) do
-        if child:IsA("ClickDetector") then
-            pcall(function() fireclickdetector(child) end)
-            success = true
-            task.wait(0.3)
-        end
-    end
-    for _, child in ipairs(npc:GetDescendants()) do
-        if child:IsA("Dialog") then
-            pcall(function()
-                for _, choice in ipairs(child:GetChildren()) do
-                    if choice:IsA("DialogChoice") then
-                        local n = choice.Name:lower()
-                        if n:find("accept") or n:find("yes") or n:find("start") or n:find("ok") then
-                            child:SignalDialogChoiceSelected(LP, choice)
-                            success = true
-                            break
-                        end
-                    end
-                end
-            end)
-        end
-    end
-    pcall(function()
-        for _, gui in ipairs(LP.PlayerGui:GetChildren()) do
-            if gui.Name:lower():find("quest") then
-                for _, btn in ipairs(gui:GetDescendants()) do
-                    if (btn:IsA("TextButton") or btn:IsA("ImageButton")) and btn.Visible then
-                        local txt = ""
-                        pcall(function() txt = btn.Text:lower() end)
-                        if txt:find("accept") or txt:find("ok") or txt:find("start") then
-                            pcall(function() btn.MouseButton1Click:Fire() end)
-                            success = true
-                        end
-                    end
-                end
-            end
-        end
-    end)
-    task.wait(0.5)
-    return success
-end
-
-local function HasActiveQuest()
-    local has = false
-    pcall(function()
-        for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
-            if child.Name:lower():find("quest") and child:IsA("Frame") and child.Visible then
-                has = true
-                break
-            end
-        end
-    end)
-    return has
-end
-
-local function GetQuestTargetName()
-    local qname = nil
-    pcall(function()
-        for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
-            if child:IsA("TextLabel") and child.Name:lower():find("quest") then
-                qname = child.Text:match("Defeat%s+%d+%s+(.+)") or child.Text:match("Kill%s+%d+%s+(.+)")
-                if qname then qname = qname:gsub("%s+$", ""); break end
-            end
-        end
-    end)
-    return qname
-end
-
-local function IsQuestComplete()
-    local done = false
-    pcall(function()
-        for _, child in ipairs(LP.PlayerGui:GetDescendants()) do
-            if child:IsA("TextLabel") then
-                local t = child.Text:lower()
-                if t:find("complete") or t:find("finished") or t:find("0 remaining") then done = true; break end
-            end
-        end
-    end)
-    return done
 end
 
 -- ==================== GATHER MOBS ====================
@@ -364,48 +547,74 @@ local function GatherMobs(center, duration)
     end
 end
 
--- ==================== FARM LOOPS ====================
+-- ==================== AUTO FARM LEVEL (REAL QUEST LOOP) ====================
 local function AutoFarmLevelLoop()
+    -- Enable fly and noclip for aerial farming
     if not State.Flying then Config.Fly = true; StartFly() end
     if not Config.Noclip then Config.Noclip = true; task.spawn(NoclipLoop) end
 
     while Config.AutoFarmLevel do
-        if not IsAlive() then task.wait(1); continue end
-        if not HasActiveQuest() then
-            Notify("Finding Quest NPC...")
-            local npc = FindNearestQuestNPC()
-            if npc then
-                local npcRoot = npc:FindFirstChild("HumanoidRootPart")
-                if npcRoot then
-                    TeleportTo(npcRoot.CFrame * CFrame.new(0, 0, 3))
-                    task.wait(1)
-                    InteractWithQuestNPC(npc)
-                    task.wait(0.5)
-                end
-            else
-                task.wait(3); continue
-            end
+        if not IsAlive() then task.wait(2); continue end
+
+        -- Step 1: Get quest for current level
+        local questInfo = GetQuestForLevel()
+        if not questInfo then
+            Notify("No quest for your level!")
+            task.wait(5); continue
         end
-        local questTarget = GetQuestTargetName()
+
+        local minLv, questId, questIdx, mobName, npcPos = questInfo[1], questInfo[2], questInfo[3], questInfo[4], questInfo[5]
+
+        -- Step 2: Accept quest if not active
+        if not HasActiveQuest() then
+            Notify("Getting quest: " .. mobName)
+
+            -- Teleport to quest NPC
+            TeleportTo(npcPos)
+            task.wait(1)
+
+            -- Accept quest via CommF_ remote
+            local accepted = StartQuest(questId, questIdx)
+            if accepted then
+                Notify("Quest accepted: " .. mobName)
+            else
+                Notify("Failed to accept quest, retrying...")
+            end
+            task.wait(1)
+        end
+
+        -- Step 3: Farm the quest mobs aerially
         local farmStart = tick()
         while Config.AutoFarmLevel and not IsQuestComplete() do
-            if not IsAlive() then task.wait(1); continue end
-            if tick() - farmStart > 180 then break end
-            local target = nil
-            if questTarget then
-                target = GetNearestMob(Config.FarmDistance, function(m)
-                    return m.Name:lower():find(questTarget:lower()) ~= nil
-                end)
+            if not IsAlive() then task.wait(2); continue end
+            if tick() - farmStart > 300 then
+                Notify("Quest timeout, getting new quest...")
+                break
             end
-            if not target then target = GetNearestMob(Config.FarmDistance) end
+
+            -- Find quest target mob
+            local target = GetNearestMob(Config.FarmDistance, function(m)
+                return m.Name == mobName or m.Name:find(mobName)
+            end)
+
+            -- If no matching mob, try any nearby mob
+            if not target then
+                target = GetNearestMob(Config.FarmDistance)
+            end
+
             if target and target:FindFirstChild("HumanoidRootPart") then
                 local mobPos = target.HumanoidRootPart.Position
+
+                -- Position above mob for aerial farming (avoid melee damage)
                 TeleportTo(CFrame.new(mobPos.X, mobPos.Y + Config.FlyHeight, mobPos.Z))
                 Attack(target)
+
+                -- Mob gathering: if enough mobs nearby, fly in circles to group them
                 if Config.BringMobs then
                     local nearby = GetMobsInRange(Config.BringRange)
                     if #nearby >= 3 then
                         GatherMobs(mobPos, 2)
+                        -- Burst attack gathered mobs
                         for i = 1, 6 do
                             local t2 = GetNearestMob(Config.BringRange)
                             if t2 and t2:FindFirstChild("HumanoidRootPart") then
@@ -417,28 +626,24 @@ local function AutoFarmLevelLoop()
                     end
                 end
             else
+                -- No mob found, teleport near NPC area
+                TeleportTo(npcPos * CFrame.new(0, Config.FlyHeight, 0))
                 task.wait(1)
             end
             task.wait(0.08)
         end
+
+        -- Step 4: Quest complete - loop back to step 1
         if IsQuestComplete() then
-            Notify("Quest done! Returning...")
-            local npc = FindNearestQuestNPC()
-            if npc then
-                local npcRoot = npc:FindFirstChild("HumanoidRootPart")
-                if npcRoot then
-                    TeleportTo(npcRoot.CFrame * CFrame.new(0, 0, 3))
-                    task.wait(1)
-                    InteractWithQuestNPC(npc)
-                    task.wait(1)
-                end
-            end
+            Notify("Quest done! " .. mobName)
         end
         task.wait(0.5)
     end
+
     Config.Fly = false; StopFly(); Config.Noclip = false
 end
 
+-- ==================== AUTO FARM NEAREST ====================
 local function AutoFarmNearestLoop()
     if not State.Flying then Config.Fly = true; StartFly() end
     if not Config.Noclip then Config.Noclip = true; task.spawn(NoclipLoop) end
@@ -466,46 +671,63 @@ local function AutoFarmNearestLoop()
     Config.Fly = false; StopFly(); Config.Noclip = false
 end
 
+-- ==================== AUTO STATS (REAL CommF_) ====================
 local function AutoStatsLoop()
     while Config.AutoStatus do
         pcall(function()
-            local sf = ReplicatedStorage:FindFirstChild("Stats")
-            if sf then
-                local remote = sf:FindFirstChild("Remote")
-                if remote then
-                    local pts = Config.PointsAmount
-                    if Config.StatMelee then for i = 1, pts do remote:FireServer("AddPoint", "Melee", 1) end end
-                    if Config.StatDefense then for i = 1, pts do remote:FireServer("AddPoint", "Defense", 1) end end
-                    if Config.StatSword then for i = 1, pts do remote:FireServer("AddPoint", "Sword", 1) end end
-                    if Config.StatGun then for i = 1, pts do remote:FireServer("AddPoint", "Gun", 1) end end
-                    if Config.StatFruit then for i = 1, pts do remote:FireServer("AddPoint", "Blox Fruit", 1) end end
-                end
-            end
+            if not CommF_ then return end
+            local pts = Config.PointsAmount
+            if Config.StatMelee then for i = 1, pts do CommF_:InvokeServer("AddPoint", "Melee", 1) end end
+            if Config.StatDefense then for i = 1, pts do CommF_:InvokeServer("AddPoint", "Defense", 1) end end
+            if Config.StatSword then for i = 1, pts do CommF_:InvokeServer("AddPoint", "Sword", 1) end end
+            if Config.StatGun then for i = 1, pts do CommF_:InvokeServer("AddPoint", "Gun", 1) end end
+            if Config.StatFruit then for i = 1, pts do CommF_:InvokeServer("AddPoint", "Blox Fruit", 1) end end
         end)
         task.wait(0.5)
     end
 end
 
+-- ==================== AUTO HAKI (REAL CommF_) ====================
 local function AutoHakiLoop()
     while Config.AutoHaki do
         pcall(function()
-            local hf = ReplicatedStorage:FindFirstChild("Haki")
-            if hf then
-                local r = hf:FindFirstChild("Remote")
-                if r then r:FireServer("Buso") end
+            if CommF_ then
+                CommF_:InvokeServer("Buso")
             end
         end)
         task.wait(4)
     end
 end
 
+-- ==================== AUTO FRUIT (REAL) ====================
 local function AutoFruitLoop()
     while Config.AutoRandomFruits or Config.AutoTeleportFruits do
         pcall(function()
-            for _, item in ipairs(Workspace:GetDescendants()) do
-                if item:IsA("Tool") and item.Name:lower():find("fruit") then
+            -- Method 1: Grab fruits from workspace (fruits spawn as models with Handle)
+            for _, item in ipairs(Workspace:GetChildren()) do
+                local name = item.Name or ""
+                if name:find("Fruit") then
                     local handle = item:FindFirstChild("Handle")
-                    if handle then TeleportTo(handle.CFrame); task.wait(0.5) end
+                    if handle then
+                        local root = GetRoot()
+                        if root then
+                            handle.CFrame = root.CFrame
+                            task.wait(0.3)
+                        end
+                    end
+                end
+            end
+            -- Method 2: Check for dropped tools on the ground
+            for _, item in ipairs(Workspace:GetChildren()) do
+                if item:IsA("Tool") and (item.Name:find("Fruit") or item.Name:find("fruit")) then
+                    local handle = item:FindFirstChild("Handle")
+                    if handle then
+                        local root = GetRoot()
+                        if root then
+                            handle.CFrame = root.CFrame
+                            task.wait(0.3)
+                        end
+                    end
                 end
             end
         end)
@@ -513,64 +735,70 @@ local function AutoFruitLoop()
     end
 end
 
+-- ==================== AUTO STORE FRUITS (REAL CommF_) ====================
 local function AutoStoreFruitsLoop()
     while Config.AutoStoreFruits do
         pcall(function()
-            local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-            if remotes then
-                local store = remotes:FindFirstChild("StoreFruit")
-                if store then store:FireServer() end
+            if CommF_ then
+                CommF_:InvokeServer("StoreFruit")
             end
         end)
         task.wait(5)
     end
 end
 
+-- ==================== AUTO FISHING (REAL) ====================
 local function AutoFishingLoop()
     while Config.AutoFishing do
         pcall(function()
-            local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-            if remotes then
-                local fish = remotes:FindFirstChild("Fishing") or remotes:FindFirstChild("Fish")
-                if fish then
-                    if fish:IsA("RemoteEvent") then fish:FireServer("Cast")
-                    elseif fish:IsA("RemoteFunction") then fish:InvokeServer("Cast") end
-                end
-            end
-            task.wait(3)
-            local remotes2 = ReplicatedStorage:FindFirstChild("Remotes")
-            if remotes2 then
-                local fish2 = remotes2:FindFirstChild("Fishing") or remotes2:FindFirstChild("Fish")
-                if fish2 then
-                    if fish2:IsA("RemoteEvent") then fish2:FireServer("Reel")
-                    elseif fish2:IsA("RemoteFunction") then fish2:InvokeServer("Reel") end
-                end
+            if CommF_ then
+                -- Cast fishing line
+                CommF_:InvokeServer("Fishing", "Cast")
+                task.wait(3)
+                -- Reel in
+                CommF_:InvokeServer("Fishing", "Reel")
             end
         end)
         task.wait(5)
     end
 end
 
+-- ==================== AUTO CHEST (REAL) ====================
 local function AutoChestLoop()
     while Config.AutoChestTween or Config.AutoChestBypass do
         pcall(function()
-            for _, chest in ipairs(Workspace:GetDescendants()) do
-                if (chest.Name:lower():find("chest") or chest.Name:lower():find("treasure")) and chest:IsA("Model") then
-                    local part = chest:FindFirstChildOfClass("BasePart")
-                    if part then
-                        if Config.AutoChestBypass then
-                            TeleportTo(part.CFrame)
-                        else
-                            local root = GetRoot()
-                            if root then
-                                local dist = (root.Position - part.Position).Magnitude
-                                local tweenInfo = TweenInfo.new(dist / Config.TweenSpeed, Enum.EasingStyle.Linear)
-                                local tw = TweenService:Create(root, tweenInfo, {CFrame = part.CFrame})
-                                tw:Play()
-                                tw.Completed:Wait()
+            -- Search for chests in Workspace and _WorldOrigin
+            local chestContainers = {Workspace}
+            pcall(function()
+                local wo = Workspace:FindFirstChild("_WorldOrigin")
+                if wo then
+                    local loc = wo:FindFirstChild("Locations")
+                    if loc then table.insert(chestContainers, loc) end
+                end
+            end)
+
+            for _, container in ipairs(chestContainers) do
+                for _, chest in ipairs(container:GetDescendants()) do
+                    if (chest.Name:find("Chest") or chest.Name:find("chest") or chest.Name:find("Treasure")) and chest:IsA("Model") then
+                        local part = chest:FindFirstChildOfClass("BasePart") or chest:FindFirstChild("Lid") or chest:FindFirstChild("Handle")
+                        if part then
+                            if Config.AutoChestBypass then
+                                TeleportTo(part.CFrame)
+                            else
+                                local root = GetRoot()
+                                if root then
+                                    local dist = (root.Position - part.Position).Magnitude
+                                    local tweenTime = math.clamp(dist / Config.TweenSpeed, 0.1, 10)
+                                    local tw = TweenService:Create(root, TweenInfo.new(tweenTime, Enum.EasingStyle.Linear), {CFrame = part.CFrame})
+                                    tw:Play()
+                                    tw.Completed:Wait()
+                                end
                             end
+                            -- Touch chest to open it
+                            pcall(function() firetouchinterest(GetRoot(), part, 0) end)
+                            pcall(function() firetouchinterest(GetRoot(), part, 1) end)
+                            task.wait(0.5)
                         end
-                        task.wait(0.5)
                     end
                 end
             end
@@ -579,22 +807,27 @@ local function AutoChestLoop()
     end
 end
 
--- Anti-AFK
+-- ==================== ANTI-AFK ====================
 task.spawn(function()
     while true do
         if Config.AntiAFK then
             pcall(function()
-                local vu = game:GetService("VirtualUser")
-                vu:Button2Down(Vector2.new(0, 0), Camera.CFrame)
+                VirtualUser:Button2Down(Vector2.new(0, 0), Camera.CFrame)
                 task.wait(0.1)
-                vu:Button2Up(Vector2.new(0, 0), Camera.CFrame)
+                VirtualUser:Button2Up(Vector2.new(0, 0), Camera.CFrame)
+            end)
+            -- Also disconnect idle connections
+            pcall(function()
+                for _, v in pairs(getconnections(LP.Idled)) do
+                    v:Disable()
+                end
             end)
         end
         task.wait(60)
     end
 end)
 
--- Infinite Jump
+-- ==================== INFINITE JUMP ====================
 pcall(function()
     UserInputService.JumpRequest:Connect(function()
         if Config.InfiniteJump then
@@ -604,7 +837,7 @@ pcall(function()
     end)
 end)
 
--- ESP
+-- ==================== ESP ====================
 local function ClearESP()
     for _, obj in pairs(State.ESPObjects) do pcall(function() obj:Destroy() end) end
     State.ESPObjects = {}
@@ -645,12 +878,37 @@ local function ESPLoop()
     ClearESP()
 end
 
--- Teleport locations
+-- ==================== TELEPORT LOCATIONS ====================
 local SeaLocations = {
     ["Sea 1"] = CFrame.new(-1126, 15, 4222),
     ["Sea 2"] = CFrame.new(37, 15, 5700),
     ["Sea 3"] = CFrame.new(-5100, 15, -2900),
 }
+
+-- Island locations (Sea 1)
+local IslandLocations = {
+    ["Starter Island"] = CFrame.new(1060, 16, 1547),
+    ["Jungle"] = CFrame.new(-1604, 37, 154),
+    ["Pirate Village"] = CFrame.new(-1139, 5, 3830),
+    ["Desert"] = CFrame.new(899, 6, 4389),
+    ["Frozen Village"] = CFrame.new(1347, 88, -1298),
+    ["Marine Fortress"] = CFrame.new(-4846, 20, 4324),
+    ["Skylands"] = CFrame.new(-4846, 844, 4324),
+    ["Prison"] = CFrame.new(4872, 17, 734),
+    ["Colosseum"] = CFrame.new(-1573, 7, -2891),
+    ["Magma Village"] = CFrame.new(-5312, 12, 8515),
+    ["Fountain City"] = CFrame.new(5255, 24, 4058),
+    ["Skull Island"] = CFrame.new(-5234, 100, -2835),
+}
+
+-- ==================== BUY FIGHTING STYLES (REAL CommF_) ====================
+local function BuyFightingStyle(styleName)
+    pcall(function()
+        if CommF_ then
+            CommF_:InvokeServer("BuyFightingStyle", styleName)
+        end
+    end)
+end
 
 -- =====================================================
 -- ===================== UI SYSTEM =====================
@@ -841,7 +1099,7 @@ local titleLbl = Instance.new("TextLabel")
 titleLbl.Size = UDim2.new(0, 200, 1, 0)
 titleLbl.Position = UDim2.new(0, 34, 0, 0)
 titleLbl.BackgroundTransparency = 1
-titleLbl.Text = "HYPERDRIVE v9 : Blox Fruits"
+titleLbl.Text = "HYPERDRIVE v9.1 : Blox Fruits"
 titleLbl.TextColor3 = C.White
 titleLbl.TextSize = 10
 titleLbl.Font = Enum.Font.GothamBold
@@ -942,7 +1200,6 @@ local function SelectTab(name)
         else
             btn.BackgroundTransparency = 1
         end
-        -- Update indicator
         local ind = btn:FindFirstChild("Indicator")
         if ind then ind.Visible = selected end
     end
@@ -993,9 +1250,7 @@ for idx, tabName in ipairs(TabList) do
 
     tabButtons[tabName] = btn
 
-    btn.MouseButton1Click:Connect(function()
-        SelectTab(tabName)
-    end)
+    btn.MouseButton1Click:Connect(function() SelectTab(tabName) end)
     btn.MouseEnter:Connect(function()
         if State.CurrentTab ~= tabName then
             Tween(btn, {BackgroundTransparency = 0, BackgroundColor3 = C.SidebarHov}, 0.1)
@@ -1112,9 +1367,9 @@ local function AddToggle(parent, text, subtitle, configKey, order, callback)
     pillBg.BackgroundColor3 = Config[configKey] and C.ToggleOn or C.ToggleOff
     pillBg.BorderSizePixel = 0
     pillBg.Parent = row
-    local pcr = Instance.new("UICorner")
-    pcr.CornerRadius = UDim.new(1, 0)
-    pcr.Parent = pillBg
+    local pcr2 = Instance.new("UICorner")
+    pcr2.CornerRadius = UDim.new(1, 0)
+    pcr2.Parent = pillBg
 
     local knob = Instance.new("Frame")
     knob.Size = UDim2.new(0, 10, 0, 10)
@@ -1481,7 +1736,6 @@ local function AddStatusRow(parent, name, statusText, order)
     sl.TextXAlignment = Enum.TextXAlignment.Left
     sl.Parent = row
 
-    -- Status dot
     local dot = Instance.new("Frame")
     dot.Size = UDim2.new(0, 6, 0, 6)
     dot.Position = UDim2.new(1, -14, 0.5, -3)
@@ -1503,7 +1757,7 @@ end
 local farmTab = MakeTab("Farm")
 AddDropdown(farmTab, "Select Tool", "Weapon to use", {"Sword", "Melee", "Blox Fruit", "Gun"}, "SelectTool", 1)
 AddSection(farmTab, "Main Farm", 2)
-AddToggle(farmTab, "Auto Farm Level", "Quest NPC loop + aerial", "AutoFarmLevel", 3, function(v)
+AddToggle(farmTab, "Auto Farm Level", "CommF_ quest loop + aerial", "AutoFarmLevel", 3, function(v)
     if v then task.spawn(AutoFarmLevelLoop) end
 end)
 AddToggle(farmTab, "Auto Farm Nearest", "Farm nearest mobs", "AutoFarmNearest", 4, function(v)
@@ -1525,7 +1779,7 @@ end)
 -- === FISHING TAB ===
 local fishTab = MakeTab("Fishing")
 AddSection(fishTab, "Fishing", 1)
-AddToggle(fishTab, "Auto Fishing", "Cast & Reel", "AutoFishing", 2, function(v)
+AddToggle(fishTab, "Auto Fishing", "Cast & Reel via CommF_", "AutoFishing", 2, function(v)
     if v then task.spawn(AutoFishingLoop) end
 end)
 AddToggle(fishTab, "Auto Collect Eggs", nil, "AutoCollectEggs", 3, nil)
@@ -1547,10 +1801,10 @@ AddToggle(questTab, "Auto Get Trident", nil, "AutoGetTrident", 10, nil)
 -- === FRUITS TAB ===
 local fruitsTab = MakeTab("Fruits")
 AddSection(fruitsTab, "Fruits", 1)
-AddToggle(fruitsTab, "Auto Random Fruits", nil, "AutoRandomFruits", 2, function(v)
+AddToggle(fruitsTab, "Auto Random Fruits", "Grab from workspace", "AutoRandomFruits", 2, function(v)
     if v then task.spawn(AutoFruitLoop) end
 end)
-AddToggle(fruitsTab, "Auto Store Fruits", nil, "AutoStoreFruits", 3, function(v)
+AddToggle(fruitsTab, "Auto Store Fruits", "CommF_ StoreFruit", "AutoStoreFruits", 3, function(v)
     if v then task.spawn(AutoStoreFruitsLoop) end
 end)
 AddToggle(fruitsTab, "Auto TP Fruits", nil, "AutoTeleportFruits", 4, function(v)
@@ -1564,7 +1818,7 @@ AddToggle(fruitsTab, "Raid Law Sea 2", nil, "RaidLawSea2", 8, nil)
 -- === STATS TAB ===
 local statsTab = MakeTab("Stats")
 AddSlider(statsTab, "Points", "PointsAmount", 1, 10, 1)
-AddToggle(statsTab, "Auto Status", nil, "AutoStatus", 2, function(v)
+AddToggle(statsTab, "Auto Status", "CommF_ AddPoint", "AutoStatus", 2, function(v)
     if v then task.spawn(AutoStatsLoop) end
 end)
 AddSection(statsTab, "Select Status", 3)
@@ -1592,7 +1846,10 @@ AddDropdown(tpTab, "Select Island", nil, {
     "Frozen Village", "Marine Fortress", "Skylands", "Prison",
     "Colosseum", "Magma Village", "Fountain City", "Skull Island",
 }, "SelectedIsland", 6)
-AddToggle(tpTab, "TP To Island", nil, "TeleportToIsland", 7, nil)
+AddButton(tpTab, "TP To Island", "Go to selected island", 7, function()
+    local loc = IslandLocations[Config.SelectedIsland]
+    if loc then TeleportTo(loc); Notify("TP: " .. Config.SelectedIsland) end
+end)
 
 -- === STATUS TAB ===
 local statusTab = MakeTab("Status")
@@ -1602,6 +1859,8 @@ AddStatusRow(statusTab, "Rip_Indra", "Not Spawned", 3)
 AddStatusRow(statusTab, "Dough King", "Not Spawned", 4)
 AddStatusRow(statusTab, "Pull Lever", "Not Active", 5)
 AddStatusRow(statusTab, "Full Moon", "Unknown", 6)
+AddSection(statusTab, "Player Info", 7)
+AddInfoBox(statusTab, "Level: " .. tostring(GetPlayerLevel()) .. " | Sea: Auto-detect", 8)
 
 -- === VISUAL TAB ===
 local visualTab = MakeTab("Visual")
@@ -1623,16 +1882,16 @@ end)
 -- === SHOP TAB ===
 local shopTab = MakeTab("Shop")
 AddSection(shopTab, "Fighting Styles", 1)
-AddToggle(shopTab, "Buy Black Leg", nil, "BuyBlackLeg", 2, nil)
-AddToggle(shopTab, "Buy Electro", nil, "BuyElectro", 3, nil)
-AddToggle(shopTab, "Buy Fishman Karate", nil, "BuyFishmanKarate", 4, nil)
-AddToggle(shopTab, "Buy Superhuman", nil, "BuySuperhuman", 5, nil)
-AddToggle(shopTab, "Buy Death Step", nil, "BuyDeathStep", 6, nil)
-AddToggle(shopTab, "Buy Sharkman", nil, "BuySharkmanKarate", 7, nil)
-AddToggle(shopTab, "Buy Electric Claw", nil, "BuyElectricClaw", 8, nil)
-AddToggle(shopTab, "Buy Dragon Talon", nil, "BuyDragonTalon", 9, nil)
-AddToggle(shopTab, "Buy God Human", nil, "BuyGodHuman", 10, nil)
-AddToggle(shopTab, "Buy Sanguine Art", nil, "BuySanguineArt", 11, nil)
+AddButton(shopTab, "Buy Black Leg", "$150K", 2, function() BuyFightingStyle("Black Leg"); Notify("Buying Black Leg") end)
+AddButton(shopTab, "Buy Electro", "$500K", 3, function() BuyFightingStyle("Electro"); Notify("Buying Electro") end)
+AddButton(shopTab, "Buy Fishman Karate", "$750K", 4, function() BuyFightingStyle("Fishman Karate"); Notify("Buying Fishman Karate") end)
+AddButton(shopTab, "Buy Superhuman", "$3M", 5, function() BuyFightingStyle("Superhuman"); Notify("Buying Superhuman") end)
+AddButton(shopTab, "Buy Death Step", "$5M", 6, function() BuyFightingStyle("Death Step"); Notify("Buying Death Step") end)
+AddButton(shopTab, "Buy Sharkman", "$5M", 7, function() BuyFightingStyle("Sharkman Karate"); Notify("Buying Sharkman Karate") end)
+AddButton(shopTab, "Buy Electric Claw", "$5M", 8, function() BuyFightingStyle("Electric Claw"); Notify("Buying Electric Claw") end)
+AddButton(shopTab, "Buy Dragon Talon", "$5M", 9, function() BuyFightingStyle("Dragon Talon"); Notify("Buying Dragon Talon") end)
+AddButton(shopTab, "Buy God Human", "$5M", 10, function() BuyFightingStyle("Godhuman"); Notify("Buying God Human") end)
+AddButton(shopTab, "Buy Sanguine Art", "$5M", 11, function() BuyFightingStyle("Sanguine Art"); Notify("Buying Sanguine Art") end)
 
 -- === MISC TAB ===
 local miscTab = MakeTab("Misc")
@@ -1650,18 +1909,22 @@ AddSlider(miscTab, "Farm Dist", "FarmDistance", 50, 500, 7)
 AddSlider(miscTab, "Bring Range", "BringRange", 50, 500, 8)
 AddSlider(miscTab, "Tween Spd", "TweenSpeed", 50, 500, 9)
 AddToggle(miscTab, "Bring Mobs", nil, "BringMobs", 10, nil)
-AddToggle(miscTab, "Auto Haki", nil, "AutoHaki", 11, function(v)
+AddToggle(miscTab, "Auto Haki", "CommF_ Buso", "AutoHaki", 11, function(v)
     if v then task.spawn(AutoHakiLoop) end
 end)
 AddToggle(miscTab, "Auto Attack", nil, "AutoAttack", 12, nil)
 AddToggle(miscTab, "Auto Shoot", nil, "AutoShoot", 13, nil)
 AddToggle(miscTab, "Attack Mobs", nil, "AttackMobs", 14, nil)
-AddSection(miscTab, "Other", 15)
-AddToggle(miscTab, "Anti-AFK", nil, "AntiAFK", 16, nil)
-AddToggle(miscTab, "Infinite Jump", nil, "InfiniteJump", 17, nil)
-AddToggle(miscTab, "Fast Attack", nil, "FastAttack", 18, nil)
-AddToggle(miscTab, "God Mode", nil, "GodMode", 19, nil)
-AddToggle(miscTab, "Auto Rejoin", nil, "AutoRejoin", 20, nil)
+AddSection(miscTab, "Skills", 15)
+AddToggle(miscTab, "Skill Z", "Use Z skill in combat", "SkillZ", 16, nil)
+AddToggle(miscTab, "Skill X", "Use X skill in combat", "SkillX", 17, nil)
+AddToggle(miscTab, "Skill C", "Use C skill in combat", "SkillC", 18, nil)
+AddSection(miscTab, "Other", 19)
+AddToggle(miscTab, "Anti-AFK", nil, "AntiAFK", 20, nil)
+AddToggle(miscTab, "Infinite Jump", nil, "InfiniteJump", 21, nil)
+AddToggle(miscTab, "Fast Attack", nil, "FastAttack", 22, nil)
+AddToggle(miscTab, "God Mode", nil, "GodMode", 23, nil)
+AddToggle(miscTab, "Auto Rejoin", nil, "AutoRejoin", 24, nil)
 
 -- ==================== MINIMIZE / HIDE ====================
 local function HideToCircle()
@@ -1705,5 +1968,6 @@ end)
 
 -- ==================== INIT ====================
 SelectTab("Farm")
-Notify("HYPERDRIVE v9 Loaded!")
+Notify("HYPERDRIVE v9.1 Loaded!")
+Notify("Real CommF_ quest logic active")
 Notify("Press RightShift to toggle UI")
